@@ -1,5 +1,6 @@
 # Serialized Actions
 Actions based on the `ManagedReference` attribute and `IAction` interface allow you to run a sequence of a custom actions.
+Used UniTask framework for async operations
 
 ![image](https://user-images.githubusercontent.com/17832838/142039615-e25db621-9360-4155-a66c-afffa5546291.png)
 
