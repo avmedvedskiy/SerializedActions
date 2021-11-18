@@ -1,13 +1,13 @@
 {
-  "name": "com.avmedvedskiy.actionnodes",
-  "displayName": "Action Nodes",
-  "version": "1.0.0",
+  "name": "com.avmedvedskiy.serializedactions",
+  "displayName": "Serialized Actions",
+  "version": "1.0.1",
   "unity": "2019.4",
   "author": "avmedvedskiy",
-  "description": "Action Nodes",
+  "description": "Serialized Actions",
   "keywords": 
   [
-    "action","nodes"
+    "action","serializereference"
   ],
   "dependencies": 
   {
