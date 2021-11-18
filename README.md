@@ -1,4 +1,4 @@
- [![Releases](https://img.shields.io/github/release/Cysharp/UniTask.svg)](https://github.com/avmedvedskiy/SerializedActions/releases)
+ [![Releases](https://img.shields.io/github/release/avmedvedskiy/SerializedActions.svg)](https://github.com/avmedvedskiy/SerializedActions/releases)
 
 # Serialized Actions
 Actions based on the `ManagedReference` attribute and `IAction` interface allow you to run a sequence of a custom actions.
