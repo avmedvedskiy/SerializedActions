@@ -15,7 +15,7 @@ Actions based on the `ManagedReference` attribute and `IAction` interface allow 
 
 #### Install via git URL
 
-`https://github.com/avmedvedskiy/SerializedActions.git?path=Assets/SerializedActions`
+`https://github.com/avmedvedskiy/SerializedActions.git`
 
 from the `Add package from git URL` option.
 
