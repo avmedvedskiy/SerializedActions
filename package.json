@@ -1,17 +1,16 @@
 {
   "name": "com.avmedvedskiy.serializedactions",
   "displayName": "Serialized Actions",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "unity": "2019.4",
   "author": "avmedvedskiy",
   "description": "Serialized Actions",
-  "keywords": 
-  [
-    "action","serializereference"
+  "keywords": [
+    "action",
+    "serializereference"
   ],
-  "dependencies": 
-  {
-	"com.avmedvedskiy.managedreference":"1.0.0",
-	"com.cysharp.unitask":"2.2.5"
+  "dependencies": {
+    "com.avmedvedskiy.managedreference": "1.0.0",
+    "com.cysharp.unitask": "2.2.5"
   }
 }
