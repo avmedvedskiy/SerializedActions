@@ -10,10 +10,11 @@ namespace Actions
 {
     public class GenericRunner<TAction> : IActionRunner where TAction : class, IAction
     {
-        public bool IsRunned { get; private set; }
-        public TAction CurrentAction { get => _currentAction; }
+        public event Action<IAction, int> OnActionChanged;
+        public bool IsRunning { get; private set; }
 
-        private Queue<TAction> _queue = new Queue<TAction>();
+        private int _currentIndex;
+        private readonly Queue<TAction> _queue = new();
         private CancellationTokenSource _token;
         private TAction _currentAction;
 
@@ -24,7 +25,8 @@ namespace Actions
                 _queue.Enqueue(actions[i] as TAction);
             }
 
-            if (IsRunned)
+            _currentIndex = startedIndex;
+            if (IsRunning)
                 return;
 
             await Run();
@@ -38,12 +40,14 @@ namespace Actions
         private async UniTask Run()
         {
             _token = new CancellationTokenSource();
-            IsRunned = true;
+            IsRunning = true;
 
             do
             {
-                _currentAction = this._queue.Dequeue();
+                _currentAction = _queue.Dequeue();
                 _currentAction.SetParent(this);
+                OnActionChanged?.Invoke(_currentAction, _currentIndex);
+                _currentIndex++;
                 try
                 {
                     if (_currentAction.DontWait)
@@ -59,10 +63,9 @@ namespace Actions
                 {
                     Debug.LogException(ex);
                 }
-            }
-            while (this._queue.Count > 0 && !_token.Token.IsCancellationRequested);
+            } while (_queue.Count > 0 && !_token.Token.IsCancellationRequested);
 
-            IsRunned = false;
+            IsRunning = false;
         }
 
 
@@ -70,11 +73,11 @@ namespace Actions
         {
             _token?.Cancel();
             _token?.Dispose();
-            while (this._queue.Count > 0)
+            while (_queue.Count > 0)
             {
                 try
                 {
-                    var action = this._queue.Dequeue();
+                    var action = _queue.Dequeue();
                     action.Stop();
                 }
                 catch (Exception ex)

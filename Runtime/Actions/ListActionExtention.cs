@@ -8,7 +8,7 @@ namespace Actions
         public static ActionRunner Run<T>(this List<T> actions) where T : class, IAction
         {
             ActionRunner runner = new ActionRunner();
-            runner.RunAsync(actions);
+            runner.RunAsync(actions).Forget();
             return runner;
         }
 
@@ -29,4 +29,3 @@ namespace Actions
         }
     }
 }
-
