@@ -14,7 +14,11 @@ namespace Actions
         public bool DontWait => _dontWait;
 
         public abstract UniTask RunAsync(CancellationToken cancellationToken);
-        public abstract void Stop();
+
+        public virtual void Stop()
+        {
+            
+        }
 
         void IAction.SetParent(IActionRunner runner)
         {
