@@ -1,13 +1,15 @@
+using System;
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Actions
 {
-    [ManagedReference.ManagedReferenceGroup("Array")]
-    [System.Serializable]
+    [Category("Array")]
+    [Serializable]
     public abstract class GenericParallelArrayAction<T> : BaseAction where T:IAction
     {
         private enum WaitType { WhenAll, WhenAny }

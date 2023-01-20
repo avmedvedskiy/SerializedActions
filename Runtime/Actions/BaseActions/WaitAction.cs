@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace Actions
 {
-    [ManagedReference.ManagedReferenceGroup("Wait")]
+    [Category("Wait")]
     [Serializable]
     public class WaitAction : BaseAction
     {
@@ -22,7 +23,7 @@ namespace Actions
 
         public override async UniTask RunAsync(CancellationToken cancellationToken)
         {
-            await UniTask.Delay(_delayInSeconds * 1000).AttachExternalCancellation(cancellationToken);
+            await UniTask.Delay(_delayInSeconds * 1000, cancellationToken: cancellationToken);
         }
     }
 }

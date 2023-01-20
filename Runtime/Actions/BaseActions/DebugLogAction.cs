@@ -1,5 +1,6 @@
 using Cysharp.Threading.Tasks;
 using System;
+using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace Actions
 {
-    [ManagedReference.ManagedReferenceGroup("Debug")]
+    [Category("Debug")]
     [Serializable]
     public class DebugLogAction : BaseAction
     {
