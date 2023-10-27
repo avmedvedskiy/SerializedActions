@@ -26,16 +26,14 @@ namespace Actions
             }
 
             _currentIndex = startedIndex;
+            //ошибка, при повторном запуске не будет ожидания
             if (IsRunning)
                 return;
 
             await Run();
         }
 
-        public async UniTask RunAsync(List<TAction> actions, int startedIndex = 0)
-        {
-            await RunAsync<TAction>(actions, startedIndex);
-        }
+        public UniTask RunAsync(List<TAction> actions, int startedIndex = 0) => RunAsync<TAction>(actions, startedIndex);
 
         private async UniTask Run()
         {
@@ -55,7 +53,7 @@ namespace Actions
                     else
                         await _currentAction.RunAsync(_token.Token);
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     Debug.Log($"Task stoped {_currentAction}");
                 }
@@ -73,18 +71,8 @@ namespace Actions
         {
             _token?.Cancel();
             _token?.Dispose();
-            while (_queue.Count > 0)
-            {
-                try
-                {
-                    var action = _queue.Dequeue();
-                    action.Stop();
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogException(ex);
-                }
-            }
+            _currentAction.Stop();
+            _queue.Clear();
         }
     }
 }
