@@ -1,9 +1,7 @@
-﻿#pragma warning disable CS4014
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Actions
@@ -32,8 +30,6 @@ namespace Actions
 
             await Run();
         }
-
-        public UniTask RunAsync(List<TAction> actions, int startedIndex = 0) => RunAsync<TAction>(actions, startedIndex);
 
         private async UniTask Run()
         {

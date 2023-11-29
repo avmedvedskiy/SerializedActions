@@ -18,10 +18,6 @@ namespace Actions
         /// </summary>
         void Stop();
 
-#if UNITY_2020_1_OR_NEWER
         internal void SetParent(IActionRunner runner);
-#else
-        void SetParent(IActionRunner runner);
-#endif
     }
 }
