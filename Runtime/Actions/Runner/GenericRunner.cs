@@ -56,6 +56,8 @@ namespace Actions
                 catch (OperationCanceledException)
                 {
                     Debug.Log($"Task stoped {_currentAction}");
+                    throw;
+
                 }
                 catch (Exception ex)
                 {
@@ -69,6 +71,7 @@ namespace Actions
 
         public void Stop()
         {
+            IsRunning = false;
             _token?.Cancel();
             _token?.Dispose();
             _currentAction.Stop();
