@@ -12,7 +12,51 @@ namespace Actions
     {
         [SerializeField] private List<NodeData> _actionNodes;
         public List<NodeData> ActionNodes => _actionNodes;
+        
+        public ActionNodeContainer Clone()
+        {
+#if UNITY_EDITOR
+            //думаю такое только для редактора и фаст мода актуально, с домейн релоадом все ок
+            var clone = Instantiate(this);
 
+            foreach (var nodeData in clone.ActionNodes)
+            {
+                var clonedDialogue = Instantiate(nodeData.SubContainer);
+                clonedDialogue.name = nodeData.SubContainer.name;
+                nodeData.SubContainer = clonedDialogue;
+            }
+
+            foreach (var nodeData in clone.ActionNodes)
+            {
+                foreach (var choice in nodeData.SubContainer.Actions.OfType<IChoiceNode>()
+                             .SelectMany(x => x.Choices))
+                {
+                    if (choice.Node == null)
+                        throw new Exception($"Not linked dialogues in node {nodeData.Name}");
+
+                    var linkNode = clone.ActionNodes.Find(x => x.Name == choice.Node.name);
+                    if (linkNode != null)
+                        choice.Node = linkNode.SubContainer;
+                }
+            }
+
+            return clone;
+#else
+            return this;
+#endif
+        }
+
+        [ContextMenu("RunAsync")]
+        async void RunAsync()
+        {
+            await ActionNodes.First().SubContainer.Actions.RunAsync();
+            Debug.Log("Complete Debug Run Async");
+        }
+
+#if UNITY_EDITOR
+        [ContextMenu("RunAsync", true, -1000)]
+        private bool RunAsyncValidateFunction() => UnityEngine.Application.isPlaying;
+#endif
         
         /*
         [ContextMenu(nameof(Repair))]
@@ -53,39 +97,5 @@ namespace Actions
             
         }
         */
-        
-
-        public ActionNodeContainer Clone()
-        {
-#if UNITY_EDITOR
-            //думаю такое только для редактора и фаст мода актуально, с домейн релоадом все ок
-            var clone = Instantiate(this);
-
-            foreach (var nodeData in clone.ActionNodes)
-            {
-                var clonedDialogue = Instantiate(nodeData.SubContainer);
-                clonedDialogue.name = nodeData.SubContainer.name;
-                nodeData.SubContainer = clonedDialogue;
-            }
-
-            foreach (var nodeData in clone.ActionNodes)
-            {
-                foreach (var choice in nodeData.SubContainer.Actions.OfType<IChoiceNode>()
-                             .SelectMany(x => x.Choices))
-                {
-                    if (choice.Node == null)
-                        throw new Exception($"Not linked dialogues in node {nodeData.Name}");
-
-                    var linkNode = clone.ActionNodes.Find(x => x.Name == choice.Node.name);
-                    if (linkNode != null)
-                        choice.Node = linkNode.SubContainer;
-                }
-            }
-
-            return clone;
-#else
-            return this;
-#endif
-        }
     }
 }
