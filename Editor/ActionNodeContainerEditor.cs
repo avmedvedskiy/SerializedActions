@@ -1,8 +1,8 @@
-using DialogueSystem.Editor.Graph;
+using Actions.Editor.Graph;
 using UnityEditor;
 using UnityEngine;
 
-namespace DialogueSystem.Editor
+namespace Actions.Editor
 {
     [CustomEditor(typeof(ActionNodeContainer))]
     public class ActionNodeContainerEditor : UnityEditor.Editor

@@ -1,9 +1,7 @@
 using System;
-using Actions;
-using Actions.Dialogues;
 using UnityEngine;
 
-namespace DialogueSystem
+namespace Actions
 {
     [Serializable]
     public class NodeData

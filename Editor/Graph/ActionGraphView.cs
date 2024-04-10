@@ -5,7 +5,7 @@ using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace DialogueSystem.Editor.Graph
+namespace Actions.Editor.Graph
 {
     public class ActionGraphView : GraphView
     {

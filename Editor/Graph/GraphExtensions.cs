@@ -1,7 +1,7 @@
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace DialogueSystem.Editor.Graph
+namespace Actions.Editor.Graph
 {
     public static class GraphExtensions
     {

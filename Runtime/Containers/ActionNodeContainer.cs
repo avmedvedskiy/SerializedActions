@@ -4,7 +4,7 @@ using System.Linq;
 using Actions.Dialogues;
 using UnityEngine;
 
-namespace DialogueSystem
+namespace Actions
 {
     [CreateAssetMenu(menuName = "Scriptable Objects/Nodes/ActionsContainer", fileName = "ActionsContainer",
         order = 0)]

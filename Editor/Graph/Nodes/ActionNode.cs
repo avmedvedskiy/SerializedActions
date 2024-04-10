@@ -4,7 +4,7 @@ using Actions;
 using Actions.Dialogues;
 using UnityEditor.Experimental.GraphView;
 
-namespace DialogueSystem.Editor.Graph
+namespace Actions.Editor.Graph
 {
     public sealed class ActionNode : EmptyNode
     {
