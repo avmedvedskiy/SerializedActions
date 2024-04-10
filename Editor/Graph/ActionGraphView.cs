@@ -162,8 +162,8 @@ namespace Actions.Editor.Graph
         private void AddStyles()
         {
             this.AddStyleSheets(
-                "DialogueSystem/DSGraphViewStyles.uss",
-                "DialogueSystem/DSNodeStyles.uss"
+                "Style/DSGraphViewStyles.uss",
+                "Style/DSNodeStyles.uss"
             );
         }
 

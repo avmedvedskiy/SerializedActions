@@ -20,6 +20,11 @@ namespace Actions.Editor.Graph
             foreach (string styleSheetName in styleSheetNames)
             {
                 StyleSheet styleSheet = (StyleSheet) EditorGUIUtility.Load(styleSheetName);
+                if (styleSheet == null)
+                {
+                    //load from package
+                    EditorGUIUtility.Load($"Packages/com.avmedvedskiy.serializedactions/Editor/{styleSheetName}");
+                }
 
                 element.styleSheets.Add(styleSheet);
             }

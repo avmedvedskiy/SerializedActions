@@ -12,5 +12,12 @@
   "dependencies": {
     "com.avmedvedskiy.managedreference": "1.0.10",
     "com.cysharp.unitask": "2.2.5"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "Debug Graph",
+      "description": "This sample demonstrates how to create graph",
+      "path": "Samples~/Debug"
+    }
+  ]
 }

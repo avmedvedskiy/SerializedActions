@@ -3,7 +3,6 @@ using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Actions
@@ -20,7 +19,7 @@ namespace Actions
         [SerializeReference, ManagedReference.ManagedReference]
         protected List<T> _actions;
 
-        private List<UniTask> _tasks = new List<UniTask>();
+        private List<UniTask> _tasks = new();
         public override async UniTask RunAsync(CancellationToken cancellationToken)
         {
             _tasks.Clear();
