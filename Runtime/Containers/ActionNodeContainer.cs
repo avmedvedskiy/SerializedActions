@@ -10,7 +10,7 @@ namespace Actions
         order = 0)]
     public class ActionNodeContainer : ScriptableObject
     {
-        [SerializeField] private List<NodeData> _actionNodes;
+        [SerializeField] private List<NodeData> _actionNodes = new();
         public List<NodeData> ActionNodes => _actionNodes;
         
         public ActionNodeContainer Clone()

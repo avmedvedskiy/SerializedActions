@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Actions.Editor.Graph.Save;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,21 +11,94 @@ namespace Actions.Editor.Graph
 {
     public class ActionGraphView : GraphView
     {
+        private ActionNodeContainer ActionNodeContainer { get; set; }
         private readonly ActionGraphWindow _actionGraphWindow;
-        private readonly List<EmptyNode> _nodes;
+        private readonly SaveLoadUtility _saveLoadUtility;
         private MiniMap _miniMap;
 
-        public List<EmptyNode> Nodes => graphElements.OfType<EmptyNode>().ToList();
+        private List<ActionNode> Nodes => graphElements.OfType<ActionNode>().ToList();
+        private int NodeCount => Nodes.Count;
 
-        public ActionGraphView(ActionGraphWindow actionGraphWindow)
+        public ActionGraphView(
+            ActionGraphWindow actionGraphWindow,
+            SaveLoadUtility saveLoadUtility)
         {
             _actionGraphWindow = actionGraphWindow;
-            _nodes = new List<EmptyNode>();
+            _saveLoadUtility = saveLoadUtility;
 
             AddGridBackGround();
             AddManipulators();
             AddMiniMap();
             AddStyles();
+            graphViewChanged += OnGraphViewChanged;
+        }
+        
+        private GraphViewChange OnGraphViewChanged(GraphViewChange graphviewchange)
+        {
+            if (graphviewchange.elementsToRemove is {Count:>0})
+                foreach (var element in graphviewchange.elementsToRemove)
+                {
+                    if (element is ActionNode actionNode)
+                    {
+                        ActionNodeContainer.RemoveNode(actionNode.ID);
+                        OnSelectNode(null);
+                    }
+                }
+            
+            Undo.RegisterFullObjectHierarchyUndo(ActionNodeContainer,ActionNodeContainer.name);
+
+            return graphviewchange;
+        }
+
+        public void Save()
+        {
+            foreach (var node in Nodes)
+            {
+                node.Update();
+            }
+
+            _saveLoadUtility.Save(ActionNodeContainer);
+        }
+
+        public void Load(ActionNodeContainer actionNodeContainer)
+        {
+            ActionNodeContainer = actionNodeContainer;
+            ClearAll();
+            foreach (var t in actionNodeContainer.ActionNodes)
+            {
+                CreateNode(t);
+            }
+
+            LoadConnection(actionNodeContainer);
+        }
+
+        private void LoadConnection(ActionNodeContainer actionNodeContainer)
+        {
+            foreach (var storage in actionNodeContainer.ActionNodes)
+            {
+                var outputNode = FindNode(storage.ID);
+                var outputPorts = outputNode.outputContainer.Children().OfType<Port>().ToList();
+                for (var i = 0; i < outputPorts.Count; i++)
+                {
+                    if (i >= storage.Links.Length)
+                        break;
+
+                    var link = storage.Links[i];
+
+                    if (string.IsNullOrEmpty(link))
+                        continue;
+
+                    var port = outputPorts[i];
+                    var inputNode = FindNode(link);
+                    var inputPort = inputNode.inputContainer.Children().First() as Port;
+                    var edge = port.ConnectTo(inputPort);
+                    AddElement(edge);
+
+                    inputNode.RefreshPorts();
+                }
+
+                outputNode.RefreshPorts();
+            }
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -34,15 +109,12 @@ namespace Actions.Editor.Graph
                 evt.menu.AppendAction("Delete",
                     _ => DeleteSelectionCallback(AskUser.DontAskUser),
                     _ => canDeleteSelection
-                            ? DropdownMenuAction.Status.Normal
-                            : DropdownMenuAction.Status.Disabled);
+                        ? DropdownMenuAction.Status.Normal
+                        : DropdownMenuAction.Status.Disabled);
             }
         }
 
-        public void OnSelectNode(EmptyNode node)
-        {
-            _actionGraphWindow.OnSelectNode(node);
-        }
+        public void OnSelectNode(ActionNode node) => _actionGraphWindow.OnSelectNode(node);
 
         private void AddGridBackGround()
         {
@@ -60,8 +132,6 @@ namespace Actions.Editor.Graph
             this.AddManipulator(new RectangleSelector());
 
             this.AddManipulator(CreateNodeContextualMenu("Add Node", CreateNode));
-            //this.AddManipulator(CreateNodeContextualMenu("Add Start Node", CreateStartNode));
-            //this.AddManipulator(CreateNodeContextualMenu("Add End Node", CreateEndNode));
         }
 
         private IManipulator CreateNodeContextualMenu(string actionTitle, Func<Vector2, GraphElement> addElementFunc)
@@ -74,33 +144,27 @@ namespace Actions.Editor.Graph
             return contextualMenuManipulator;
         }
 
-        private EmptyNode CreateNode(Vector2 position)
+        private ActionNode CreateNode(Vector2 position)
         {
-            var node = new ActionNode("DialogueNode", this);
+            var data = ActionNodeContainer.AddNewData($"NewNode {NodeCount}");
+            var node = new ActionNode(data, this);
             node.SetPosition(new Rect(position, Vector2.zero));
-            OnSelectNode(node);
+            //OnSelectNode(node);
             node.Draw();
-            _nodes.Add(node);
             return node;
         }
 
-        public EmptyNode CreateNode(NodeData data)
+        public ActionNode CreateNode(NodeData data)
         {
-            var node = new ActionNode("DialogueNode", this)
-            {
-                ID = data.ID,
-                userData = data,
-                Name = string.IsNullOrEmpty(data.Name) ? data.SubContainer.name : data.Name
-            };
+            var node = new ActionNode(data, this);
             node.SetPosition(new Rect(data.Position, Vector2.zero));
             node.Draw();
-            _nodes.Add(node);
             AddElement(node);
             return node;
         }
 
 
-        public EmptyNode FindNode(string id) => _nodes.Find(x => x.ID == id);
+        public ActionNode FindNode(string id) => Nodes.Find(x => x.ID == id);
 
         public override List<Port> GetCompatiblePorts(Port startPort, NodeAdapter nodeAdapter)
         {
@@ -126,7 +190,7 @@ namespace Actions.Editor.Graph
 
             return localMousePosition;
         }
-        
+
         private void AddMiniMap()
         {
             _miniMap = new MiniMap
@@ -169,8 +233,12 @@ namespace Actions.Editor.Graph
 
         public void ClearAll()
         {
-            _nodes.Clear();
             graphElements.ForEach(RemoveElement);
+        }
+
+        public void Refresh()
+        {
+            Load(ActionNodeContainer);
         }
     }
 }

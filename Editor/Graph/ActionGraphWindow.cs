@@ -9,36 +9,45 @@ namespace Actions.Editor.Graph
     public class ActionGraphWindow : EditorWindow
     {
         private ActionGraphView _graphView;
-        private ActionSaveLoadUtility _actionSaveLoadUtility;
-        private ActionNodeContainer _actionNodeContainer;
+        private SaveLoadUtility _saveLoadUtility;
+        private ActionNodeContainer _container;
         private UnityEditor.Editor _editor;
-        private EmptyNode _selectedNode;
+        private ActionNode _selectedNode;
 
-        [MenuItem("Tools/Dialogue Graph")]
+        [MenuItem("Tools/Action Graph")]
         public static void Open()
         {
-            GetWindow<ActionGraphWindow>("Dialogue Graph");
+            GetWindow<ActionGraphWindow>("Action Graph");
         }
         
         public static void Open(ActionNodeContainer container)
         {
-            var window = GetWindow<ActionGraphWindow>("Dialogue Graph");
+            var window = GetWindow<ActionGraphWindow>("Action Graph");
             window.Load(container);
         }
 
         private void OnEnable()
         {
+            _saveLoadUtility = new SaveLoadUtility();
             AddGraphView();
             AddToolbar();
-            AddDialogEditorGUI();
+            AddEditorGUI();
+            _graphView.Load(_saveLoadUtility.CreateContainer());
+            Undo.undoRedoPerformed += UndoRedoPerformed;
+        }
+
+        private void UndoRedoPerformed()
+        {
+            _graphView.Refresh();
         }
 
         private void OnDestroy()
         {
             Save();
+            Undo.undoRedoPerformed -= UndoRedoPerformed;
         }
 
-        private void AddDialogEditorGUI()
+        private void AddEditorGUI()
         {
             VisualElement scroll = new ScrollView(ScrollViewMode.Vertical);
 
@@ -58,11 +67,11 @@ namespace Actions.Editor.Graph
 
         private void OnInspectorGUI()
         {
-            if (_editor != null && _actionNodeContainer != null)
+            if (_editor != null)
             {
                 if (_editor.DrawDefaultInspector())
                 {
-                    _selectedNode?.OnValueChanged(); 
+                    _selectedNode?.Update(); 
                 }
 
             }
@@ -70,24 +79,21 @@ namespace Actions.Editor.Graph
 
         private void AddGraphView()
         {
-            _graphView = new ActionGraphView(this);
+            _graphView = new ActionGraphView(this, _saveLoadUtility);
             _graphView.StretchToParentSize();
             _graphView.style.width = new Length(65, LengthUnit.Percent);
 
             rootVisualElement.Add(_graphView);
-            _actionSaveLoadUtility = new ActionSaveLoadUtility(_graphView);
         }
 
         private void AddToolbar()
         {
             Toolbar toolbar = new Toolbar();
             Button saveButton = UIElementUtility.CreateButton("Save", Save);
-            Button saveAsButton = UIElementUtility.CreateButton("Save As...", SaveAs);
             Button loadButton = UIElementUtility.CreateButton("Load", Load);
             Button clearButton = UIElementUtility.CreateButton("Clear", Clear);
             Button miniMapButton = UIElementUtility.CreateButton("Minimap", ToggleMiniMap);
             toolbar.Add(saveButton);
-            toolbar.Add(saveAsButton);
             toolbar.Add(loadButton);
             toolbar.Add(clearButton);
             toolbar.Add(miniMapButton);
@@ -104,45 +110,40 @@ namespace Actions.Editor.Graph
         private void Clear()
         {
             _graphView.ClearAll();
-            _actionNodeContainer = null;
+            _container = null;
             _editor = null;
         }
 
         private void Load()
         {
-            _actionNodeContainer = _actionSaveLoadUtility.Load();
-            _editor = UnityEditor.Editor.CreateEditor(_actionNodeContainer);
+            var newContainer = _saveLoadUtility.Load();
+            if (newContainer != null)
+            {
+                _container = newContainer;
+                _graphView.Load(newContainer);
+            }
+            _editor = UnityEditor.Editor.CreateEditor(_container);
         }
 
         private void Load(ActionNodeContainer container)
         {
-            _actionNodeContainer = _actionSaveLoadUtility.Load(container);
-            _editor = UnityEditor.Editor.CreateEditor(_actionNodeContainer);
-        }
-
-        private void Save()
-        {
-            _actionNodeContainer = _actionSaveLoadUtility.Save(_actionNodeContainer);
-            _editor ??= UnityEditor.Editor.CreateEditor(_actionNodeContainer);
+            _container = container;
+            _graphView.Load(container);
+            _editor = UnityEditor.Editor.CreateEditor(_container);
         }
         
-        private void SaveAs()
+        private void Save()
         {
-            _actionNodeContainer = _actionSaveLoadUtility.SaveAs(_actionNodeContainer);
-            _editor ??= UnityEditor.Editor.CreateEditor(_actionNodeContainer);
+            _graphView.Save();
+            _editor ??= UnityEditor.Editor.CreateEditor(_container);
         }
 
-        public void OnSelectNode(EmptyNode node)
+        public void OnSelectNode(ActionNode node)
         {
-            if (_actionNodeContainer == null)
-            {
-                SaveAs();
-            }
-            
-            var nodeData = node.userData as NodeData;
-            nodeData ??= _actionSaveLoadUtility.GetOrCreateData(_actionNodeContainer, node);
             _selectedNode = node;
-            _editor = UnityEditor.Editor.CreateEditor(nodeData.SubContainer);
+            _editor = _selectedNode != null
+                ? UnityEditor.Editor.CreateEditor(node.Data.SubContainer)
+                : null;
         }
     }
 }

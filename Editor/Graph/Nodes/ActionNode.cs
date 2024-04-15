@@ -1,59 +1,50 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Actions;
 using Actions.Dialogues;
+using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Actions.Editor.Graph
 {
-    public sealed class ActionNode : EmptyNode
+    public class ActionNode : Node
     {
-        private NodeData Data => userData as NodeData;
+        public string ID => Data.ID;
         private ActionContainer ActionStorage => Data.SubContainer;
+        public NodeData Data { get; }
+
+        private readonly ActionGraphView _graphView;
         
         private readonly Dictionary<IChoiceModel, Port> _ports = new();
-
-        public override bool expanded { get; set; }
-
-        public ActionNode(string nodeName, ActionGraphView graphView) : base(nodeName, graphView)
+        public ActionNode(NodeData data, ActionGraphView graphView)
         {
-            this.expanded = true;
+            Data = data;
+            _graphView = graphView;
+
+            mainContainer.AddToClassList("ds-node__main-container");
+            extensionContainer.AddToClassList("ds-node__extension-container");
         }
         
-        protected override void OnDraw()
+
+        private void AddInputPort()
         {
-            UpdatePorts();
-            
             Port inputPort = this.CreatePort("input", Orientation.Horizontal, Direction.Input, Port.Capacity.Multi);
             inputContainer.Add(inputPort);
-            
-            //Port outputPort = this.CreatePort("output");
-            //Port output2Port = this.CreatePort("output2");
-
-            //outputContainer.Add(outputPort);
-            //outputContainer.Add(output2Port);
-
-            
-            //VisualElement customDataContainer = new VisualElement();
-            //customDataContainer.AddToClassList("ds-node__custom-data-container");
-            //extensionContainer.Add(customDataContainer);
-
         }
 
         private void UpdatePorts()
         {
-            if(ActionStorage == null)
-                return;
-            //add new
             List<IChoiceModel> choices = ActionStorage.Actions.OfType<IChoiceNode>().SelectMany(x => x.Choices).ToList();
             foreach (var choice in choices)
             {
                 if(choice == null)
                     continue;
 
+                var port = this.CreatePort(choice.ToString());
                 if (!_ports.ContainsKey(choice))
                 {
-                    Port port = this.CreatePort(choice.ToString());
                     outputContainer.Add(port);
                     _ports.Add(choice,port);
                 }
@@ -83,10 +74,60 @@ namespace Actions.Editor.Graph
             RefreshExpandedState();
         }
 
-        public override void OnValueChanged()
+        private void RefreshLinks()
         {
-            //recalculate ports
+            Data.Links = GetLinks();
+            foreach (var port in _ports)
+            {
+                var outputNode = port.Value.connections.FirstOrDefault()?.output.node;
+                port.Key.Node = (outputNode as ActionNode)?.Data.SubContainer;
+            }
+        }
+
+        private string[] GetLinks() =>
+            _ports
+                .SelectMany(x => x.Value.connections)
+                .Select(edge => (edge.input.node as ActionNode)?.ID)
+                .ToArray();
+
+        public override void OnSelected()
+        {
+            base.OnSelected();
+            _graphView.OnSelectNode(this);
             UpdatePorts();
+        }
+
+        public void Draw()
+        {
+            TextField dialogueNameTextField = UIElementUtility.CreateTextField(Data.Name, null, callback =>
+            {
+                TextField target = (TextField)callback.target;
+                Data.Name = target.value;
+            });
+
+            dialogueNameTextField.AddClasses(
+                "ds-node__text-field",
+                "ds-node__text-field__hidden",
+                "ds-node__filename-text-field");
+
+            titleContainer.Insert(0, dialogueNameTextField);
+
+            
+            expanded = true;
+            AddInputPort();
+            UpdatePorts();
+        }
+
+        public override void SetPosition(Rect newPos)
+        {
+            base.SetPosition(newPos);
+            Data.Position = newPos.position;
+        }
+
+        public void Update()
+        {
+            UpdatePorts();
+            RefreshLinks();
         }
     }
 }
