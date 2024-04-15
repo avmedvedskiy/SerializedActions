@@ -14,7 +14,6 @@ namespace Actions.Editor.Graph
         private ActionNodeContainer ActionNodeContainer { get; set; }
         private readonly ActionGraphWindow _actionGraphWindow;
         private readonly SaveLoadUtility _saveLoadUtility;
-        private MiniMap _miniMap;
 
         private List<ActionNode> Nodes => graphElements.OfType<ActionNode>().ToList();
         private int NodeCount => Nodes.Count;
@@ -28,7 +27,6 @@ namespace Actions.Editor.Graph
 
             AddGridBackGround();
             AddManipulators();
-            AddMiniMap();
             AddStyles();
             graphViewChanged += OnGraphViewChanged;
         }
@@ -62,8 +60,8 @@ namespace Actions.Editor.Graph
 
         public void Load(ActionNodeContainer actionNodeContainer)
         {
-            ActionNodeContainer = actionNodeContainer;
             ClearAll();
+            ActionNodeContainer = actionNodeContainer;
             foreach (var t in actionNodeContainer.ActionNodes)
             {
                 CreateNode(t);
@@ -164,7 +162,7 @@ namespace Actions.Editor.Graph
         }
 
 
-        public ActionNode FindNode(string id) => Nodes.Find(x => x.ID == id);
+        private ActionNode FindNode(string id) => Nodes.Find(x => x.ID == id);
 
         public override List<Port> GetCompatiblePorts(Port startPort, NodeAdapter nodeAdapter)
         {
@@ -190,39 +188,6 @@ namespace Actions.Editor.Graph
 
             return localMousePosition;
         }
-
-        private void AddMiniMap()
-        {
-            _miniMap = new MiniMap
-            {
-                anchored = true,
-                maxHeight = 100,
-                maxWidth = 200
-            };
-            _miniMap.SetPosition(new Rect(0, 0, 200, 100));
-            _miniMap.visible = false;
-
-            AddMiniMapStyles();
-            Add(_miniMap);
-        }
-
-        public void ToggleMiniMap()
-        {
-            _miniMap.visible = !_miniMap.visible;
-        }
-
-        private void AddMiniMapStyles()
-        {
-            StyleColor backgroundColor = new StyleColor(new Color32(29, 29, 30, 255));
-            StyleColor borderColor = new StyleColor(new Color32(51, 51, 51, 255));
-
-            _miniMap.style.backgroundColor = backgroundColor;
-            _miniMap.style.borderTopColor = borderColor;
-            _miniMap.style.borderRightColor = borderColor;
-            _miniMap.style.borderBottomColor = borderColor;
-            _miniMap.style.borderLeftColor = borderColor;
-        }
-
         private void AddStyles()
         {
             this.AddStyleSheets(
@@ -234,6 +199,7 @@ namespace Actions.Editor.Graph
         public void ClearAll()
         {
             graphElements.ForEach(RemoveElement);
+            ActionNodeContainer = _saveLoadUtility.CreateContainer();
         }
 
         public void Refresh()

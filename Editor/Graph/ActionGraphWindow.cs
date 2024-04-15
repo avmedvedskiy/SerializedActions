@@ -1,5 +1,6 @@
 using Actions.Editor.Graph.Save;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -9,6 +10,8 @@ namespace Actions.Editor.Graph
     public class ActionGraphWindow : EditorWindow
     {
         private ActionGraphView _graphView;
+        private MiniMap _miniMap;
+        
         private SaveLoadUtility _saveLoadUtility;
         private ActionNodeContainer _container;
         private UnityEditor.Editor _editor;
@@ -82,7 +85,9 @@ namespace Actions.Editor.Graph
             _graphView = new ActionGraphView(this, _saveLoadUtility);
             _graphView.StretchToParentSize();
             _graphView.style.width = new Length(65, LengthUnit.Percent);
-
+            _miniMap = GraphExtensions.CreateMiniMap();
+            
+            _graphView.Add(_miniMap);
             rootVisualElement.Add(_graphView);
         }
 
@@ -102,9 +107,7 @@ namespace Actions.Editor.Graph
         
         private void ToggleMiniMap()
         {
-            _graphView.ToggleMiniMap();
-
-            //miniMapButton.ToggleInClassList("ds-toolbar__button__selected");
+            _miniMap.visible = !_miniMap.visible;
         }
 
         private void Clear()
