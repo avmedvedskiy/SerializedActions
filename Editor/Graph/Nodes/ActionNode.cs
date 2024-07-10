@@ -79,7 +79,7 @@ namespace Actions.Editor.Graph
             Data.Links = GetLinks();
             foreach (var port in _ports)
             {
-                var outputNode = port.Value.connections.FirstOrDefault()?.output.node;
+                var outputNode = port.Value.connections.FirstOrDefault()?.input.node;
                 port.Key.Node = (outputNode as ActionNode)?.Data.SubContainer;
             }
         }
