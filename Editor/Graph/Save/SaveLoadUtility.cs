@@ -49,6 +49,9 @@ namespace Actions.Editor.Graph.Save
                     Debug.LogError($"Actions is null {data.Name}");
                     continue;
                 }
+
+                data.SubContainer.name = data.Name;
+                EditorUtility.SetDirty(data.SubContainer);
                 
                 var choices = data.SubContainer.Actions.OfType<IChoiceNode>().SelectMany(x => x.Choices).ToArray();
                 for (int i = 0; i < data.Links.Length; i++)
